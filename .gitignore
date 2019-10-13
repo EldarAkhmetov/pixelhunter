@@ -5,6 +5,7 @@
 *.pdf
 *.psd
 *.sublime*
+package-lock.json
 build/
 node_modules/
 Thumbs.db
