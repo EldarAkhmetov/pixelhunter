@@ -1,4 +1,4 @@
-import {rules} from './game';
+import {rules} from '../game';
 
 export default (state) => `\
   <header class="header">

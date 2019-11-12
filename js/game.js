@@ -1,14 +1,6 @@
 import levels from './data-levels';
-import ingameTask1 from './ingame-task-1';
-import ingameTask2 from './ingame-task-2';
-import ingameTask3 from './ingame-task-3';
-import gameStats from './stats';
-
-export const tasks = {
-  "task-1": ingameTask1,
-  "task-2": ingameTask2,
-  "task-3": ingameTask3
-};
+import ingameLevel from './level/level';
+import gameStats from './stats/stats';
 
 export const rules = Object.freeze({
   levelTime: 30,
@@ -36,7 +28,7 @@ export const state = Object.freeze({
 const renderScreen = (screen) => {
   const viewport = document.querySelector(`.viewport`);
   viewport.innerHTML = ``;
-  viewport.appendChild(screen);
+  viewport.appendChild(screen.element);
   return viewport;
 };
 
@@ -45,14 +37,12 @@ export const renderLevel = (currentState) => {
     renderScreen(gameStats(currentState));
   } else {
     const currentLevel = levels[currentState.level];
-    const currentOptions = currentLevel.options;
-    const newTask = tasks[currentLevel.task](currentState, currentOptions);
-    renderScreen(newTask);
+    renderScreen(ingameLevel(currentState, currentLevel));
   }
 };
 
-export const start = (initialState, userName) => {
-  const newState = Object.assign({}, initialState, {
+export const start = (userName) => {
+  const newState = Object.assign({}, state, {
     name: userName
   });
   renderLevel(newState);
