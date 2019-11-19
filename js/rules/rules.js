@@ -1,17 +1,24 @@
 import RulesView from './rules-view';
-import renderScreen, {start} from '../game';
-import greeting from '../greeting/greeting';
+import renderScreen, {state} from '../data/data';
+import Application from '../application';
 
-export default () => {
-  const rules = new RulesView();
+export default class RulesPresenter {
+  constructor() {
+    this.view = new RulesView();
+  }
 
-  rules.onContinueButtonClick = (userName) => {
-    start(userName);
-  };
+  init() {
+    renderScreen(this.view);
 
-  rules.onBackButtonClick = () => {
-    renderScreen(greeting());
-  };
+    this.view.onContinueButtonClick = (userName) => {
+      Application.showGame(Object.assign({}, state, {
+        name: userName,
+        results: state.results.slice()
+      }));
+    };
 
-  return rules;
-};
+    this.view.onBackButtonClick = () => {
+      Application.showGreeting();
+    };
+  }
+}

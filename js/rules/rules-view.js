@@ -1,7 +1,7 @@
 import AbstractView from '../view';
 import footer from '../footer';
 import header from '../header';
-import {rules} from '../game';
+import {rules} from '../data/data';
 
 export default class RulesView extends AbstractView {
   get template() {

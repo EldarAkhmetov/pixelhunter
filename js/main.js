@@ -1,4 +1,3 @@
-import intro from './intro/intro';
-import renderScreen from './game';
+import Application from './application';
 
-renderScreen(intro());
+Application.showIntro();

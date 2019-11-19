@@ -1,11 +1,12 @@
 import AbstractView from '../view';
 import footer from '../footer';
-import header from './header';
+import header from './game-header';
 import stats from '../ingame-stats';
+import {rules} from '../data/data';
 
 const TRIPLE_TASK = 2;
 
-export default class LevelView extends AbstractView {
+export default class GameView extends AbstractView {
   constructor(state, level) {
     super();
     this.state = state;
@@ -74,9 +75,18 @@ export default class LevelView extends AbstractView {
     ${footer()}`;
   }
 
+  get levelTime() {
+    return rules.levelTime - parseInt(this.levelTimer.textContent, 10);
+  }
+
+  set levelTime(time) {
+    this.levelTimer.textContent = time;
+  }
+
   bind() {
     const element = this.element;
     const form = element.querySelector(`.game__content`);
+    this.levelTimer = element.querySelector(`.game__timer`);
 
     const backButton = element.querySelector(`.header__back`);
     backButton.style.cursor = `pointer`;
@@ -92,19 +102,19 @@ export default class LevelView extends AbstractView {
         question.addEventListener(`click`, (evt) => {
           evt.preventDefault();
           const isTaskCorrect = this.level.options[i].answer === this.correctAnswer;
-          this.onContinueButtonClick(this.state, isTaskCorrect);
+          this.onAnswered(isTaskCorrect, this.levelTime);
         });
       });
+    } else {
+      form.addEventListener(`change`, (evt) => {
+        evt.preventDefault();
+        if (this.level.questions.every(isChecked)) {
+          const isTaskCorrect = this.level.options.every((option, index) => option.answer === form.elements[`question${index + 1}`].value);
+          this.onAnswered(isTaskCorrect, this.levelTime);
+        }
+
+      });
     }
-
-    form.addEventListener(`change`, (evt) => {
-      evt.preventDefault();
-      if (this.level.questions.every(isChecked)) {
-        const isTaskCorrect = this.level.options.every((option, index) => option.answer === form.elements[`question${index + 1}`].value);
-        this.onContinueButtonClick(this.state, isTaskCorrect);
-      }
-
-    });
 
     backButton.addEventListener(`click`, () => {
       this.onBackButtonClick();
@@ -112,7 +122,7 @@ export default class LevelView extends AbstractView {
 
   }
 
-  onContinueButtonClick(state, isTaskCorrect) {
+  onAnswered(isTaskCorrect, levelTime) {
 
   }
 
