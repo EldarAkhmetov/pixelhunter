@@ -5,14 +5,16 @@ import {rules} from '../data/data';
 import stats from '../ingame-stats';
 
 export default class StatsView extends AbstractView {
-  constructor(state) {
+  constructor(data) {
     super();
-    this.state = state;
+    this.state = data[data.length - 1];
+    this.data = data;
     this.bonuses = {
       fast: `Бонус за скорость`,
       slow: `Штраф за медлительность`,
       heart: `Бонус за жизни`
     };
+    this.results = this._otherResultsTemplate(this.data);
   }
 
   _bonus(state, bonusName) {
@@ -43,91 +45,80 @@ export default class StatsView extends AbstractView {
       </tr>`;
   }
 
-  _statsTemplate() {
-    const bonusNumbers = Object.keys(this.bonuses).reduce((acc, item) => {
-      return Object.assign({}, acc, {[item]: this._bonus(this.state, item)});
+  _bonusNumbers(state) {
+    return Object.keys(this.bonuses).reduce((acc, item) => {
+      return Object.assign({}, acc, {[item]: this._bonus(state, item)});
     }, {});
+  }
 
-    const pointsBeforeBonuses = this._points(this.state);
-    const totalPoints = pointsBeforeBonuses + Object.keys(bonusNumbers)
-      .reduce((acc, bonusName) => acc + bonusNumbers[bonusName] * rules.points[bonusName], 0);
+  _pointsBeforeBonuses(state) {
+    return this._points(state);
+  }
+
+  _totalPoints(state) {
+    return this._pointsBeforeBonuses(state) + Object.keys(this._bonusNumbers(state))
+      .reduce((acc, bonusName) => acc + this._bonusNumbers(state)[bonusName] * rules.points[bonusName], 0);
+  }
+
+  _statsTemplate(state) {
 
     return `\
       <div class="result">
-        <h1>${this._title(this.state)}</h1>
+        <h1>${this._title(state)}</h1>
         <table class="result__table">
           <tr>
-            <td class="result__number">1.</td>
+            <td class="result__number">${this._currentIndex + 1}.</td>
             <td colspan="2">
-              ${stats(this.state.results)}
+              ${stats(state.results)}
             </td>
             <td class="result__points">×&nbsp;${rules.points.correct}</td>
-            <td class="result__total">${pointsBeforeBonuses}</td>
+            <td class="result__total">${this._pointsBeforeBonuses(state)}</td>
           </tr>
-          ${(Object.keys(bonusNumbers).map((currentBonus) => this._bonusTemplate(bonusNumbers[currentBonus], currentBonus)).join(``))}
+          ${(Object.keys(this._bonusNumbers(state)).map((currentBonus) => this._bonusTemplate(this._bonusNumbers(state)[currentBonus], currentBonus)).join(``))}
           <tr>
-            <td colspan="5" class="result__total  result__total--final">${totalPoints}</td>
+            <td colspan="5" class="result__total  result__total--final">${this._totalPoints(state)}</td>
           </tr>
         </table>
-        <table class="result__table">
-          <tr>
-            <td class="result__number">2.</td>
-            <td>
-              <ul class="stats">
-                <li class="stats__result stats__result--wrong"></li>
-                <li class="stats__result stats__result--slow"></li>
-                <li class="stats__result stats__result--fast"></li>
-                <li class="stats__result stats__result--correct"></li>
-                <li class="stats__result stats__result--wrong"></li>
-                <li class="stats__result stats__result--unknown"></li>
-                <li class="stats__result stats__result--slow"></li>
-                <li class="stats__result stats__result--wrong"></li>
-                <li class="stats__result stats__result--fast"></li>
-                <li class="stats__result stats__result--wrong"></li>
-              </ul>
-            </td>
-            <td class="result__total"></td>
-            <td class="result__total  result__total--final">fail</td>
-          </tr>
-        </table>
-        <table class="result__table">
-          <tr>
-            <td class="result__number">3.</td>
-            <td colspan="2">
-              <ul class="stats">
-                <li class="stats__result stats__result--wrong"></li>
-                <li class="stats__result stats__result--slow"></li>
-                <li class="stats__result stats__result--fast"></li>
-                <li class="stats__result stats__result--correct"></li>
-                <li class="stats__result stats__result--wrong"></li>
-                <li class="stats__result stats__result--unknown"></li>
-                <li class="stats__result stats__result--slow"></li>
-                <li class="stats__result stats__result--unknown"></li>
-                <li class="stats__result stats__result--fast"></li>
-                <li class="stats__result stats__result--unknown"></li>
-              </ul>
-            </td>
-            <td class="result__points">×&nbsp;100</td>
-            <td class="result__total">900</td>
-          </tr>
-          <tr>
-            <td></td>
-            <td class="result__extra">Бонус за жизни:</td>
-            <td class="result__extra">2&nbsp;<span class="stats__result stats__result--heart"></span></td>
-            <td class="result__points">×&nbsp;50</td>
-            <td class="result__total">100</td>
-          </tr>
-          <tr>
-            <td colspan="5" class="result__total  result__total--final">950</td>
-          </tr>
-        </table>
-      </div>`;
+      </div>
+    `;
+  }
+
+  _otherPlayerStatsTemplate(state, index) {
+    return `\
+    <div class="result">
+      <table class="result__table">
+        <tr>
+          <td class="result__number">${index + 1}.</td>
+          <td colspan="2">
+            ${stats(state.results)}
+          </td>
+          <td class="result__points">×&nbsp;${rules.points.correct}</td>
+          <td class="result__total">${this._pointsBeforeBonuses(state)}</td>
+        </tr>
+        <tr>
+          <td colspan="5" class="result__total  result__total--final">${this._totalPoints(state)}</td>
+        </tr>
+      </table>
+    </div>
+    `;
+  }
+
+  _otherResultsTemplate(data) {
+    return data.slice().sort((state1, state2) => {
+      return this._totalPoints(state2) - this._totalPoints(state1);
+    }).map((currentState, index) => {
+      if (currentState === this.state) {
+        this._currentIndex = index;
+      }
+      return this._otherPlayerStatsTemplate(currentState, index);
+    }).join(``);
   }
 
   get template() {
     return `\
     ${header()}
-    ${this._statsTemplate()}
+    ${this._statsTemplate(this.state)}
+    ${this.results}
     ${footer()}`;
   }
 

@@ -3,9 +3,9 @@ import Application from '../application';
 import renderScreen from '../data/data';
 
 export default class StatsPresenter {
-  constructor(state) {
-    this.state = state;
-    this.view = new StatsView(state);
+  constructor(data) {
+    this.state = data;
+    this.view = new StatsView(data);
   }
 
   init() {
