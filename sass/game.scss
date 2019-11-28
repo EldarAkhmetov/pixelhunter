@@ -45,6 +45,13 @@
 
   text-align: center;
   vertical-align: middle;
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+  }
 }
 
 .game__answer input {
